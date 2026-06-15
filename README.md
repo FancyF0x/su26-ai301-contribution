@@ -3,7 +3,7 @@
 **Contribution Number:** [1]  
 **Student:** [Lizaveta Khalipava]  
 **Issue:** [[GitHub issue link](https://github.com/carlos-emr/carlos/issues/2650)]  
-**Status:** [Phase I] [Complete]
+**Status:** [Phase II] [Complete]
 
 ---
 
@@ -28,19 +28,21 @@ I have reviewed the linked companion issues to ensure my fix aligns with the pro
 
 ### Problem Description
 
-[In your own words, what's broken or missing?]
+The toggle() method in DisplayPersonalInfoAppointment2Action writes directly to the HTTP response but returns a bare null value instead of returning the proper Struts constant NONE. Because Struts 7 handles action result mapping strictly, returning null leaves the result resolution undefined. This can cause the framework to accidentally try to find a default result mapping or append unwanted HTML error content onto a response that has already been successfully written.
 
 ### Expected Behavior
 
-[What should happen?]
+After an action successfully writes data directly to the response stream, it should return Action.NONE. This explicitly instructs Struts 7 that the response is fully handled and that no further result processing, view rendering, or content appending should take place.
 
 ### Current Behavior
 
-[What actually happens?]
+The method returns null. This triggers unpredictable result resolution in Struts 7, creating a risk that Struts will attempt to resolve the null mapping and corrupt the client response by trailing it with error page fragments or layout HTML.
 
 ### Affected Components
 
-[Which parts of the codebase are involved?]
+src/main/java/io/github/carlos_emr/carlos/provider/web/DisplayPersonalInfoAppointment2Action.java (Specifically the toggle() and execute() methods).
+
+src/main/resources/struts-scheduling.xml (The configuration file defining result mappings for this action area).
 
 ---
 
@@ -48,19 +50,23 @@ I have reviewed the linked companion issues to ensure my fix aligns with the pro
 
 ### Environment Setup
 
-[Notes on setting up your local development environment - challenges you faced, how you solved them]
+Prerequisites : 
+- Docker Desktop installed and running
+- VS Code with the Dev Containers extension
+- Git
+- Ports 8080 and 3306 must be available
 
 ### Steps to Reproduce
 
-1. [Step 1]
-2. [Step 2]
-3. [Observed result]
+1. Navigate to the appointment scheduling interface or trigger the toggle feature associated with personal info display settings.
+
+2. Intercept or monitor the server network traffic/logs when DisplayPersonalInfoAppointment2Action executes.
+
+3. Observed result: While the initial response data is written, the console logs or raw network responses show Struts 7 executing additional result resolution workflows for a null action string, risking appended markup overhead or warning flags in the application log.
 
 ### Reproduction Evidence
 
-- **Commit showing reproduction:** [Link to commit in your fork]
-- **Screenshots/logs:** [If applicable]
-- **My findings:** [What you discovered during reproduction]
+- **Commit showing reproduction:** [Link to commit in your fork](https://github.com/carlos-emr/carlos/commit/56ff5c2d6ef97f28baa42116278c3a897ef7afdf)
 
 ---
 
@@ -68,11 +74,13 @@ I have reviewed the linked companion issues to ensure my fix aligns with the pro
 
 ### Analysis
 
-[Your analysis of the root cause - what's causing the issue?]
+The root cause is a deviation from Struts 7 best practices regarding direct-response actions. When a method bypasses the standard view layer (JSP/FreeMarker) to stream raw data directly to the client, Struts needs an explicit signal to halt execution. Returning null is a legacy pattern that Struts 7 treats as undefined.
 
 ### Proposed Solution
 
-[High-level description of your fix approach]
+1. Update Java Action Source: Modify DisplayPersonalInfoAppointment2Action.java line 81 to explicitly return the Struts framework constant NONE instead of null.
+
+2. Verify Configuration: Inspect struts-scheduling.xml to confirm that the action's result mappings either completely omit a mapping for "none" (defaulting to a no-op as required) or handle it explicitly as an empty forward to prevent additional framework interceptors from writing to the output stream.
 
 ### Implementation Plan
 
