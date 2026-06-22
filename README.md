@@ -86,20 +86,38 @@ The root cause is a deviation from Struts 7 best practices regarding direct-resp
 
 Using UMPIRE framework (adapted):
 
-**Understand:** [Restate the problem]
+**Understand:** The DisplayPersonalInfoAppointment2Action.toggle() method writes directly to the response but returns a bare null. In Struts 7, returning null leaves result resolution undefined, which causes the framework to look for a default view mapping and risks appending accidental HTML error content or layout fragments to a response that has already been sent to the client.
 
-**Match:** [What similar patterns/solutions exist in the codebase?]
+**Match:** This matches an identical pattern addressed across similar direct-response paths within the CARLOS codebase, specifically:
+
+#2574: Fixed null-return patterns in lab direct-response actions.
+
+#2594: Fixed the exact same issue in EChartPrint2Action.
+
+Guidelines in CLAUDE.md state that a bare null return string is unreliable following direct response generation in Struts 7.
 
 **Plan:** [Step-by-step implementation plan]
-1. [Modify file X to do Y]
-2. [Add function Z]
-3. [Update tests]
+1. Modify Target Action: Update DisplayPersonalInfoAppointment2Action.java to change the return statement of toggle() from return null; to return NONE; (or ActionSupport.NONE).
 
-**Implement:** [Link to your branch/commits as you work]
+2. Review Configuration: Verify that src/main/resources/struts-scheduling.xml correctly maps this action without defining a forward for "none", maintaining a clean no-op termination.
 
-**Review:** [Self-review checklist - does it follow the project's contribution guidelines?]
+3. Run Regression suite: Execute the newly introduced unit tests to guarantee that both the privilege gate checks and the updated NONE return logic work properly.
 
-**Evaluate:** [How will you verify it works?]
+**Implement:** [[Link to your commit](https://github.com/carlos-emr/carlos/pull/2979/changes/9c61a4315a7398c215aca2f5a201c48aaff7b349)] [[Link to your commit](https://github.com/carlos-emr/carlos/pull/2979/changes/cee1a2179658a03d22e58cce4ba467c5e773dd92)]
+
+**Review:** 
+
+[ ] Core logic updates follow strict Java code standards specified by CARLOS.
+
+[ ] Code changes avoid introducing hardcoded string literals where existing constants (ActionSupport.NONE) are available.
+
+[ ] PR links accurately back to issue #2650.
+
+[ ] DCO sign-off followed.
+
+**Evaluate:** 
+
+Compilation and verification will be validated by executing the unit test class DisplayPersonalInfoAppointment2ActionUnitTest. Green tests ensure the code change meets expected execution behavior and matches framework contracts.
 
 ---
 
@@ -107,18 +125,29 @@ Using UMPIRE framework (adapted):
 
 ### Unit Tests
 
-- [ ] Test case 1: [Description]
-- [ ] Test case 2: [Description]
-- [ ] Test case 3: [Description]
+[x] Test Case 1: shouldReturnNoneAndSetTrue_whenAttributeAbsent
+Verifies that a first-time execution initializes showPersonal to true in the session and safely returns ActionSupport.NONE.
+
+[x] Test Case 2: shouldReturnNoneAndSetFalse_whenPreviouslyTrue
+Ensures that when the user profile state is already set to true, a call to toggle() properly flips it to false and still terminates with ActionSupport.NONE.
+
+[x] Test Case 3: shouldReturnNoneAndSetTrue_whenPreviouslyFalse
+Confirms state cycling works properly by flipping an existing false session attribute back to true while continuing to return ActionSupport.NONE.
+
+[x] Test Case 4: shouldThrowSecurityException_whenPrivilegeMissing
+Pins the security constraint residing in execute(), confirming a SecurityException is thrown and aborts processing if the caller lacks _demographic read rights.
 
 ### Integration Tests
 
-- [ ] Integration scenario 1
-- [ ] Integration scenario 2
+[ ] Integration Scenario 1: Deploy the application changes to a container, log into a provider account, and fire the showPersonal toggle action. Confirm via network tools that the HTTP response headers return a clean status code and zero trailing content body bytes.
+
+[ ] Integration Scenario 2: Attempt to run the endpoint under an account lacking _demographic view roles to ensure the framework catches and properly rejects the transaction upstream.
 
 ### Manual Testing
 
-[What you tested manually and results]
+Ran mvn clean test -Dtest=DisplayPersonalInfoAppointment2ActionUnitTest against the local sandbox environment.
+
+Checked the console log outputs to confirm that Struts 7 mapping errors disappear and the mock context runs successfully.
 
 ---
 
@@ -142,9 +171,9 @@ Using UMPIRE framework (adapted):
 
 ## Pull Request
 
-**PR Link:** [GitHub PR URL when submitted]
+**PR Link:** [[GitHub PR URL when submitted](https://github.com/carlos-emr/carlos/pull/2979)]
 
-**PR Description:** [Draft or final PR description - much of the content above can be adapted]
+**PR Description:** Fixes the return null to return NONE in DisplayPersonalInfoAppointment2Action.toggle().
 
 **Maintainer Feedback:**
 - [Date]: [Summary of feedback received]
