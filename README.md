@@ -3,7 +3,7 @@
 **Contribution Number:** [1]  
 **Student:** [Lizaveta Khalipava]  
 **Issue:** [[GitHub issue link](https://github.com/carlos-emr/carlos/issues/2650)]  
-**Status:** [Phase III] [Complete]
+**Status:** [Phase IV] [Complete]
 
 ---
 
@@ -153,19 +153,45 @@ Checked the console log outputs to confirm that Struts 7 mapping errors disappea
 
 ## Implementation Notes
 
-### Week [X] Progress
+### Week [1] Progress
 
-[What you built this week, challenges faced, decisions made]
+**What was built/done:**  Dedicated this week to issue selection and local environment alignment. Explored the repository to locate an approachable bug, settling on issue #2650 due to its clear scope.
 
-### Week [Y] Progress
+**Challenges faced:**  Setting up a legacy/large-scale enterprise Java application locally can surface configuration drift. Ensuring the correct JDK version and Maven wrapper settings were aligned took some troubleshooting.
 
-[Continue documenting as you work]
+**Decisions made:**  Relied closely on the main Readme and the container one for repository guidelines and how to set up the program.
+
+### Week [2] Progress
+
+**What was built/done:**  Focused on tracing the execution path of DisplayPersonalInfoAppointment2Action.java to reproduce the logic flaw.
+
+**Challenges faced:**  Struts 7 handles undefined null returns behind the scenes, catching the exact edge-case side effect required deep tracing of the result resolution chain.
+
+**Decisions made:**  Analyzed how companion issues #2574 and #2594 solved the same problem. Decided that returning the explicit framework constant ActionSupport.NONE was the safest architectural approach.
+
+### Week [3] Progress
+
+**What was built/done:**  Implemented the code fix changing the return type to NONE. Drafted the initial unit test suite to pin down the session toggle states.
+
+**Challenges faced:**  Writing comprehensive unit tests for the first time. Mocking static contexts required learning how to handle thread-local web contexts in isolated test environments.
+
+**Decisions made:**  Structured the tests using a custom withMockedContext consumer pattern to clean up static mocks automatically after each test execution block.
+
+### Week [4] Progress
+
+**What was built/done:**  Packaged the changes into a clean branch, opened Pull Request #2979, and rapidly iterated through the maintainer's code review feedback.
+
+**Challenges faced:**  Encountered pipeline verification failures due to missing Developer Certificate of Origin (DCO) commit sign-offs. Resolving this required learning how to selectively upstream fixes, rewrite git histories, and utilize git cherry-pick.
+
+**Decisions made:**  Refactored the test suite to invoke toggle() directly for state validation while preserving execute() strictly for testing the privilege intercept gate, fulfilling the reviewer's exact preferences.
 
 ### Code Changes
 
-- **Files modified:** [List]
-- **Key commits:** [Links to important commits]
-- **Approach decisions:** [Why you chose certain approaches]
+- **Files modified:** 
+1. src/main/java/io/github/carlos_emr/carlos/provider/web/DisplayPersonalInfoAppointment2Action.java
+2. src/main/webapp/WEB-INF/classes/struts-provider.xml
+3. src/test/java/io/github/carlos_emr/carlos/provider/web/DisplayPersonalInfoAppointment2ActionUnitTest.java
+- **Key commits:** [Link to important commits]https://github.com/carlos-emr/carlos/pull/2979/commits
 
 ---
 
@@ -176,10 +202,14 @@ Checked the console log outputs to confirm that Struts 7 mapping errors disappea
 **PR Description:** Fixes the return null to return NONE in DisplayPersonalInfoAppointment2Action.toggle().
 
 **Maintainer Feedback:**
-- [Date]: [Summary of feedback received]
-- [Date]: [How you addressed it]
+- [6-24-2026]: [Summary of feedback received]
+    1. Include struts configuration
+    2. Change the tests to call the toggle() function instead of execute()
+    3. PR title to match the issue name
+    4. Include more docstrings explaining code purpose and functionality
+- [6-24-2026]: [How you addressed it]
 
-**Status:** [Awaiting review / Iterating / Approved / Merged]
+**Status:** [Merged]
 
 ---
 
@@ -187,20 +217,16 @@ Checked the console log outputs to confirm that Struts 7 mapping errors disappea
 
 ### Technical Skills Gained
 
-[What you learned technically]
+1. Creating my first PR, understanding the process, and iterating through feedback and clean solution.
+2. Navigating an extensive codebase and learning about proper code organization. 
 
 ### Challenges Overcome
 
-[What was hard and how you solved it]
+1. Each commit had to be signed off, which failed the tests when I created a PR. In between that I also had to merge from upstream, which made my sign offs messy at first, and had to utilize a new skill of cherry picking. 
+2. Writing unit tests for the first time and understanding how to trigger certain behavior.
 
 ### What I'd Do Differently Next Time
 
-[Reflection on your process]
+Read very carefully through the Readme files to familiarize with the codebase and styles maintainers want to have and not be afraid to ask them questions. 
 
 ---
-
-## Resources Used
-
-- [Link to helpful documentation]
-- [Tutorial or Stack Overflow post that helped]
-- [GitHub issues or discussions that helped]
