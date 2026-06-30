@@ -1,4 +1,4 @@
-# Contribution [#]: [Issue Title]
+# Contribution [#2979]: [Return NONE instead of null in DisplayPersonalInfoAppointment2Action.toggle()]
 
 **Contribution Number:** [1]  
 **Student:** [Lizaveta Khalipava]  
